@@ -1579,7 +1579,7 @@ func TestORM_Heads_Chain(t *testing.T) {
 		}
 		require.NotEqual(t, competingHead1.Hash, h.Hash)
 		require.NotEqual(t, competingHead2.Hash, h.Hash)
-		h = h.Parent
+		h = *h.Parent
 		count++
 	}
 	assert.Equal(t, 8, count)
@@ -1593,7 +1593,7 @@ func TestORM_Heads_Chain(t *testing.T) {
 		if h.Parent == nil {
 			break
 		}
-		h = h.Parent
+		h = *h.Parent
 		count++
 	}
 	assert.Equal(t, 2, count)
