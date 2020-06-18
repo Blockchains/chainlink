@@ -1721,7 +1721,7 @@ func TestORM_EthTaskRunTx(t *testing.T) {
 	})
 }
 
-func TestORM_FindJobPreloadsJobSpecErrors(t *testing.T) {
+func TestORM_FindJobWithErrorsPreloadsJobSpecErrors(t *testing.T) {
 	t.Parallel()
 
 	store, cleanup := cltest.NewStore(t)
@@ -1734,12 +1734,12 @@ func TestORM_FindJobPreloadsJobSpecErrors(t *testing.T) {
 
 	description1, description2 := "description 1", "description 2"
 
-	require.NoError(t, store.UpsertErrorFor(job1.ID, description1))
-	require.NoError(t, store.UpsertErrorFor(job1.ID, description2))
+	store.UpsertErrorFor(job1.ID, description1)
+	store.UpsertErrorFor(job1.ID, description2)
 
-	job1, err := store.FindJob(job1.ID)
+	job1, err := store.FindJobWithErrors(job1.ID)
 	require.NoError(t, err)
-	job2, err = store.FindJob(job2.ID)
+	job2, err = store.FindJobWithErrors(job2.ID)
 	require.NoError(t, err)
 
 	assert.Len(t, job1.Errors, 2)
@@ -1762,13 +1762,12 @@ func TestORM_UpsertErrorFor_Happy(t *testing.T) {
 
 	description1, description2 := "description 1", "description 2"
 
-	err := store.UpsertErrorFor(job1.ID, description1)
-	require.NoError(t, err)
+	store.UpsertErrorFor(job1.ID, description1)
 
 	tests := []struct {
-		jobID              *models.ID
-		description        string
-		expectedOccurences uint
+		jobID               *models.ID
+		description         string
+		expectedOccurrences int32
 	}{
 		{
 			job1.ID,
@@ -1796,11 +1795,10 @@ func TestORM_UpsertErrorFor_Happy(t *testing.T) {
 		test := tt
 		testName := fmt.Sprintf(`Create JobSpecError with ID %v and description "%s"`, test.jobID, test.description)
 		t.Run(testName, func(t *testing.T) {
-			err := store.UpsertErrorFor(test.jobID, test.description)
-			require.NoError(t, err)
+			store.UpsertErrorFor(test.jobID, test.description)
 			jse, err := store.FindJobSpecError(test.jobID, test.description)
 			require.NoError(t, err)
-			require.Equal(t, test.expectedOccurences, jse.Occurences)
+			require.Equal(t, test.expectedOccurrences, jse.Occurrences)
 		})
 	}
 }
@@ -1814,8 +1812,7 @@ func TestORM_UpsertErrorFor_Error(t *testing.T) {
 	job := cltest.NewJob()
 	require.NoError(t, store.CreateJob(&job))
 	description := "description"
-	err := store.UpsertErrorFor(job.ID, description)
-	require.NoError(t, err)
+	store.UpsertErrorFor(job.ID, description)
 
 	tests := []struct {
 		name        string
@@ -1837,8 +1834,7 @@ func TestORM_UpsertErrorFor_Error(t *testing.T) {
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			err := store.UpsertErrorFor(test.jobID, test.description)
-			assert.Error(t, err)
+			store.UpsertErrorFor(test.jobID, test.description)
 		})
 	}
 }
